@@ -22,11 +22,19 @@ public struct MeshRendererComponent : IComponent
     /// <summary>Draw-order hint. Lower values draw first.</summary>
     public int RenderOrder;
 
+    /// <summary>
+    /// Conservative bounding sphere radius used for frustum culling (world units).
+    /// Set to the largest diagonal half-extent of the model.
+    /// A value of 0 disables per-entity frustum culling (entity is always drawn when Visible).
+    /// </summary>
+    public float BoundingRadius;
+
     public static MeshRendererComponent Default => new()
     {
-        Model       = null,
-        Tint        = Color.White,
-        Visible     = true,
-        RenderOrder = 0,
+        Model          = null,
+        Tint           = Color.White,
+        Visible        = true,
+        RenderOrder    = 0,
+        BoundingRadius = 0f,
     };
 }

@@ -19,3 +19,4 @@ C:\Sourcecode\REB\src\REB.Game\obj\Debug\net8.0\refint\REB.Game.dll
 C:\Sourcecode\REB\src\REB.Game\obj\Debug\net8.0\REB.Game.pdb
 C:\Sourcecode\REB\src\REB.Game\obj\Debug\net8.0\REB.Game.genruntimeconfig.cache
 C:\Sourcecode\REB\src\REB.Game\obj\Debug\net8.0\ref\REB.Game.dll
+C:\Sourcecode\REB\src\REB.Game\obj\Debug\net8.0\REB.Game.sourcelink.json

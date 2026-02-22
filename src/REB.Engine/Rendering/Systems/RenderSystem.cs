@@ -1,18 +1,26 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using REB.Engine.ECS;
+using REB.Engine.Physics.Systems;
 using REB.Engine.Rendering.Components;
+using REB.Engine.Spatial.Systems;
 
 namespace REB.Engine.Rendering.Systems;
 
 /// <summary>
-/// Basic forward render system.
-/// Each frame it:
-///   1. Finds the active camera and computes view/projection matrices.
-///   2. Iterates all entities with a <see cref="MeshRendererComponent"/> and draws their model.
-///   3. Flushes the <see cref="DebugDraw"/> overlay.
+/// Forward render system.  Each frame it:
+/// <list type="number">
+///   <item>Locates the active camera and builds view / projection matrices.</item>
+///   <item>Retrieves lighting data from <see cref="LightingSystem"/> if registered.</item>
+///   <item>Iterates all visible <see cref="MeshRendererComponent"/> entities,
+///         applying frustum culling and optional LOD via <see cref="LodComponent"/>.</item>
+///   <item>Applies per-entity lighting via BasicEffect.</item>
+///   <item>Flushes the <see cref="DebugDraw"/> overlay last.</item>
+/// </list>
 /// </summary>
+[RunAfter(typeof(PhysicsSystem))]
+[RunAfter(typeof(LightingSystem))]
+[RunAfter(typeof(SpatialSystem))]
 public sealed class RenderSystem : GameSystem
 {
     private readonly GraphicsDevice _device;
@@ -29,10 +37,13 @@ public sealed class RenderSystem : GameSystem
 
     public override void Draw(GameTime gameTime)
     {
-        // 1 — Find the active camera.
-        Matrix view       = Matrix.Identity;
-        Matrix projection = Matrix.Identity;
-        bool   cameraFound = false;
+        // ------------------------------------------------------------------
+        // 1. Active camera
+        // ------------------------------------------------------------------
+        Matrix view        = Matrix.Identity;
+        Matrix projection  = Matrix.Identity;
+        Vector3 cameraPos  = Vector3.Zero;
+        bool    cameraFound = false;
 
         foreach (var entity in World.Query<CameraComponent, TransformComponent>())
         {
@@ -42,8 +53,7 @@ public sealed class RenderSystem : GameSystem
             if (!cam.IsActive) continue;
 
             transform.Recompute();
-
-            float aspect = _device.Viewport.AspectRatio;
+            cameraPos = transform.Position;
 
             view = Matrix.CreateLookAt(
                 transform.Position,
@@ -52,19 +62,31 @@ public sealed class RenderSystem : GameSystem
 
             projection = Matrix.CreatePerspectiveFieldOfView(
                 cam.FieldOfView,
-                aspect,
+                _device.Viewport.AspectRatio,
                 cam.NearPlane,
                 cam.FarPlane);
 
             cam.View       = view;
             cam.Projection = projection;
-            cameraFound = true;
+            cameraFound    = true;
             break;
         }
 
         if (!cameraFound) return;
 
-        // 2 — Draw all visible mesh renderers.
+        // ------------------------------------------------------------------
+        // 2. Lighting (optional — falls back to BasicEffect defaults)
+        // ------------------------------------------------------------------
+        World.TryGetSystem<LightingSystem>(out var lighting);
+
+        // ------------------------------------------------------------------
+        // 3. View frustum for culling
+        // ------------------------------------------------------------------
+        var frustum = new BoundingFrustum(view * projection);
+
+        // ------------------------------------------------------------------
+        // 4. Draw visible meshes
+        // ------------------------------------------------------------------
         foreach (var entity in World.Query<MeshRendererComponent, TransformComponent>())
         {
             ref var renderer  = ref World.GetComponent<MeshRendererComponent>(entity);
@@ -72,31 +94,79 @@ public sealed class RenderSystem : GameSystem
 
             if (!renderer.Visible || renderer.Model == null) continue;
 
+            // Frustum cull when a bounding radius is provided.
+            if (renderer.BoundingRadius > 0f)
+            {
+                var sphere = new BoundingSphere(transform.Position, renderer.BoundingRadius);
+                if (frustum.Contains(sphere) == ContainmentType.Disjoint) continue;
+            }
+
+            // LOD / distance cull when an LodComponent is present.
+            if (World.TryGetComponent<LodComponent>(entity, out var lod))
+            {
+                float dist = Vector3.Distance(transform.Position, cameraPos);
+
+                if (lod.CullDistance > 0f && dist > lod.CullDistance) continue;
+
+                ref var lodRef = ref World.GetComponent<LodComponent>(entity);
+                lodRef.IsLowDetail = dist > lod.LodSwitchDistance;
+            }
+
             transform.Recompute();
 
             foreach (ModelMesh mesh in renderer.Model.Meshes)
             {
                 foreach (var effect in mesh.Effects)
                 {
-                    if (effect is BasicEffect basic)
-                    {
-                        basic.World      = transform.WorldMatrix;
-                        basic.View       = view;
-                        basic.Projection = projection;
-                        basic.DiffuseColor = renderer.Tint.ToVector3();
-                        basic.EnableDefaultLighting();
-                    }
+                    if (effect is not BasicEffect basic) continue;
+
+                    basic.World        = transform.WorldMatrix;
+                    basic.View         = view;
+                    basic.Projection   = projection;
+                    basic.DiffuseColor = renderer.Tint.ToVector3();
+
+                    ApplyLighting(basic, lighting);
                 }
                 mesh.Draw();
             }
         }
 
-        // 3 — Flush debug geometry.
+        // ------------------------------------------------------------------
+        // 5. Debug geometry overlay
+        // ------------------------------------------------------------------
         DebugDraw.Flush(view, projection);
     }
 
     public override void OnShutdown()
     {
         DebugDraw.Shutdown();
+    }
+
+    // -------------------------------------------------------------------------
+    //  Lighting helper
+    // -------------------------------------------------------------------------
+
+    private static void ApplyLighting(BasicEffect basic, LightingSystem? lighting)
+    {
+        if (lighting == null)
+        {
+            basic.EnableDefaultLighting();
+            return;
+        }
+
+        basic.LightingEnabled   = true;
+        basic.AmbientLightColor = lighting.AmbientColor;
+
+        basic.DirectionalLight0.Enabled      = lighting.Light0.IsActive;
+        basic.DirectionalLight0.Direction    = lighting.Light0.Direction;
+        basic.DirectionalLight0.DiffuseColor = lighting.Light0.DiffuseColor;
+
+        basic.DirectionalLight1.Enabled      = lighting.Light1.IsActive;
+        basic.DirectionalLight1.Direction    = lighting.Light1.Direction;
+        basic.DirectionalLight1.DiffuseColor = lighting.Light1.DiffuseColor;
+
+        basic.DirectionalLight2.Enabled      = lighting.Light2.IsActive;
+        basic.DirectionalLight2.Direction    = lighting.Light2.Direction;
+        basic.DirectionalLight2.DiffuseColor = lighting.Light2.DiffuseColor;
     }
 }

@@ -4,7 +4,11 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet sln:*)",
       "Bash(dotnet sln add:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(ls:*)",
+      "Bash(cmd /c:*)",
+      "Bash(dir:*)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }

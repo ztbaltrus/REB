@@ -102,3 +102,4 @@ C:\Sourcecode\REB\tests\REB.Tests\obj\Debug\net8.0\refint\REB.Tests.dll
 C:\Sourcecode\REB\tests\REB.Tests\obj\Debug\net8.0\REB.Tests.pdb
 C:\Sourcecode\REB\tests\REB.Tests\obj\Debug\net8.0\REB.Tests.genruntimeconfig.cache
 C:\Sourcecode\REB\tests\REB.Tests\obj\Debug\net8.0\ref\REB.Tests.dll
+C:\Sourcecode\REB\tests\REB.Tests\obj\Debug\net8.0\REB.Tests.sourcelink.json

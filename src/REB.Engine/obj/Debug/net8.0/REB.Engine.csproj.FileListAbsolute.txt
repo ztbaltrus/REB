@@ -14,3 +14,4 @@ C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.dll
 C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\refint\REB.Engine.dll
 C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.pdb
 C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\ref\REB.Engine.dll
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.sourcelink.json
