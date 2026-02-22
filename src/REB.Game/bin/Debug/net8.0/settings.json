@@ -1,0 +1,12 @@
+{
+  "resolutionWidth": 1920,
+  "resolutionHeight": 1080,
+  "isFullscreen": false,
+  "vSync": true,
+  "masterVolume": 1,
+  "musicVolume": 0.8,
+  "sfxVolume": 1,
+  "preferredGamepadSlot": 0,
+  "mouseSensitivity": 1,
+  "invertMouseY": false
+}

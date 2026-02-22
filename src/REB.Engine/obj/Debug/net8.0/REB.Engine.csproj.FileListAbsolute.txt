@@ -1,0 +1,16 @@
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.csproj.AssemblyReference.cache
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.GeneratedMSBuildEditorConfig.editorconfig
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.AssemblyInfoInputs.cache
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.AssemblyInfo.cs
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.csproj.CoreCompileInputs.cache
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\REB.Engine.deps.json
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\REB.Engine.dll
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\REB.Engine.pdb
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\FNA.dll
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\FNA.pdb
+C:\Sourcecode\REB\src\REB.Engine\bin\Debug\net8.0\FNA.dll.config
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.csproj.Up2Date
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.dll
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\refint\REB.Engine.dll
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\REB.Engine.pdb
+C:\Sourcecode\REB\src\REB.Engine\obj\Debug\net8.0\ref\REB.Engine.dll
