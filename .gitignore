@@ -1,2 +1,14 @@
 
 *.dll
+
+src/REB.Game/obj/Debug/
+
+src/REB.Game/bin/Debug/
+
+src/REB.Engine/obj/Debug/
+
+src/REB.Engine/bin/Debug/
+
+tests/REB.Tests/bin/Debug/
+
+tests/REB.Tests/obj/Debug/
