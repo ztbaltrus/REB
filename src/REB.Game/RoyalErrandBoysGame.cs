@@ -3,7 +3,10 @@ using Microsoft.Xna.Framework.Graphics;
 using REB.Engine.Audio.Systems;
 using REB.Engine.ECS;
 using REB.Engine.Input;
+using REB.Engine.Multiplayer.Systems;
 using REB.Engine.Physics.Systems;
+using REB.Engine.Player.Princess.Components;
+using REB.Engine.Player.Systems;
 using REB.Engine.Rendering.Components;
 using REB.Engine.Rendering.Systems;
 using REB.Engine.Settings;
@@ -15,13 +18,14 @@ namespace REB.Game;
 
 /// <summary>
 /// Root <see cref="Microsoft.Xna.Framework.Game"/> subclass for Royal Errand Boys.
-/// Bootstraps the ECS <see cref="World"/>, registers all Phase-1 and Phase-2 systems,
+/// Bootstraps the ECS <see cref="World"/>, registers all systems through Epic 3,
 /// and wires the FNA game loop into the ECS update/draw cycle.
 /// </summary>
 public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
 {
     private readonly GraphicsDeviceManager _graphics;
-    private World _world = null!;
+    private World                  _world          = null!;
+    private SessionManagerSystem   _sessionManager = null!;
 
     public RoyalErrandBoysGame()
     {
@@ -46,44 +50,58 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
     {
         _world = new World();
 
-        // ---- Phase 1: Core Engine Services (Story 1.4) ----
+        // ── Phase 1: Core Engine Services (Story 1.4) ────────────────────────
         _world.RegisterSystem(new InputSystem());
         _world.RegisterSystem(new AudioSystem());
         _world.RegisterSystem(new SettingsSystem(_graphics));
 
-        // ---- Phase 2: Spatial + Physics (Stories 2.2 & 2.4) ----
-        // SpatialSystem builds the octree before PhysicsSystem queries it.
+        // ── Phase 2: Spatial + Physics (Stories 2.2 & 2.4) ──────────────────
         _world.RegisterSystem(new SpatialSystem(worldSize: 512f));
         _world.RegisterSystem(new PhysicsSystem());
 
-        // ---- Phase 2: Lighting (Story 2.3) ----
+        // ── Phase 2: Lighting (Story 2.3) ────────────────────────────────────
         _world.RegisterSystem(new LightingSystem());
 
-        // ---- Phase 2: Performance overlay (Story 2.4) ----
+        // ── Phase 3: Multiplayer session (Stories 3.2 & 3.3) ─────────────────
+        _sessionManager = new SessionManagerSystem();
+        _world.RegisterSystem(_sessionManager);
+        _world.RegisterSystem(new LobbySystem());
+        _world.RegisterSystem(new NetworkSyncSystem());
+
+        // ── Phase 3: Player systems (Stories 3.1, 3.3 & 3.4) ─────────────────
+        _world.RegisterSystem(new PlayerControllerSystem());
+        _world.RegisterSystem(new AnimationSystem());
+        _world.RegisterSystem(new RoleAbilitySystem());
+        _world.RegisterSystem(new CarrySystem());
+
+        // ── Phase 2: Performance overlay (Story 2.4) ─────────────────────────
         _world.RegisterSystem(new PerformanceOverlaySystem());
 
-        // ---- Phase 1: 3D Rendering (Story 1.3) ----
-        // RunAfter attributes on RenderSystem ensure it executes after physics & lighting.
+        // ── Phase 1: 3D Rendering (Story 1.3) ────────────────────────────────
         _world.RegisterSystem(new RenderSystem(GraphicsDevice));
 
-        // ---- Phase 2: Procedural floor generation (Story 2.1) ----
-        // Seed 1 → deterministic first-run layout. Randomise per-run in Epic 3.
+        // ── Phase 2: Procedural floor generation (Story 2.1) ─────────────────
+        // Seed 1 → deterministic first-run layout; randomise per-run in Epic 4.
         _world.RegisterSystem(new ProceduralFloorGeneratorSystem(
             seed:       1,
             theme:      FloorTheme.Dungeon,
             gridWidth:  48,
             gridHeight: 48));
 
-        // Default scene entities.
+        // ── Scene entities ────────────────────────────────────────────────────
         SpawnDefaultCamera();
         SpawnDefaultLighting();
+        SpawnPrincess();
+
+        // Auto-join the keyboard player so gameplay starts immediately.
+        _sessionManager.JoinPlayer(0);
 
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        // Assets loaded per-scene in later epics.
+        // Per-scene asset loading deferred to later epics.
     }
 
     // -------------------------------------------------------------------------
@@ -122,12 +140,12 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
     {
         var camera = _world.CreateEntity();
 
-        // Positioned for a top-down overview of the generated 48×48 tile floor
-        // (world extent ≈ 96×96 units with TileSize=2).
+        // Initial position; PlayerControllerSystem repositions this each frame
+        // relative to Player1's location once the player entity exists.
         _world.AddComponent(camera, new TransformComponent
         {
-            Position    = new Vector3(48f, 40f, 48f),
-            Rotation    = Quaternion.CreateFromAxisAngle(Vector3.Right, -MathHelper.PiOver4),
+            Position    = new Vector3(0f, 5f, -10f),
+            Rotation    = Quaternion.Identity,
             Scale       = Vector3.One,
             WorldMatrix = Matrix.Identity,
         });
@@ -153,5 +171,23 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
             Scale       = Vector3.One,
             WorldMatrix = Matrix.Identity,
         });
+    }
+
+    private void SpawnPrincess()
+    {
+        var princess = _world.CreateEntity();
+        _world.AddTag(princess, "Princess");
+
+        // Placed near the centre of the floor grid until the ProceduralFloorGeneratorSystem
+        // has run and the PrincessChamber spawn point is known (Epic 4 refinement).
+        _world.AddComponent(princess, new TransformComponent
+        {
+            Position    = new Vector3(48f, 0.5f, 48f),
+            Rotation    = Quaternion.Identity,
+            Scale       = Vector3.One,
+            WorldMatrix = Matrix.Identity,
+        });
+
+        _world.AddComponent(princess, PrincessStateComponent.Default);
     }
 }

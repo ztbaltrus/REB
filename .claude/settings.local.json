@@ -8,7 +8,8 @@
       "Bash(ls:*)",
       "Bash(cmd /c:*)",
       "Bash(dir:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(xargs:*)"
     ]
   }
 }
