@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <AssemblyName>REB.Engine</AssemblyName>
+    <RootNamespace>REB.Engine</RootNamespace>
+    <Optimize>false</Optimize>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+<!-- Content + native DLLs -->
+  <ItemGroup>
+    <!-- Copy x64 fnalibs (SDL3, FAudio, etc.) next to DungeonChef.exe -->
+    <None Include="..\native-win-x64\*.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FNA\FNA.Core.csproj" />
+    <ProjectReference Include="..\..\FNA\FNA.NetFramework.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -63,7 +63,7 @@ Every ECS system and core utility should have a corresponding test in `tests/REB
 Tests use xUnit. Keep test files mirroring the source tree:
 
 ```
-src/REB.Engine/ECS/World.cs  →  tests/REB.Tests/ECS/WorldTests.cs
+REB.Engine/ECS/World.cs  →  REB.Tests/ECS/WorldTests.cs
 ```
 
 ## Workflow
@@ -80,11 +80,9 @@ src/REB.Engine/ECS/World.cs  →  tests/REB.Tests/ECS/WorldTests.cs
 REB/
 ├── FNA/                    FNA library (submodule, do not modify)
 ├── docs/                   Design documents
-├── src/
-│   ├── REB.Engine/         ECS core + all engine systems
-│   └── REB.Game/           Game bootstrap and scenes
-├── tests/
-│   └── REB.Tests/          xUnit test project
+├── REB.Engine/         ECS core + all engine systems
+└── REB.Game/           Game bootstrap and scenes
+└── REB.Tests/          xUnit test project
 ├── .github/workflows/      CI pipeline
 ├── CONTRIBUTING.md         This file
 └── REB.sln
