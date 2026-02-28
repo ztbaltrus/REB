@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using REB.Engine.ECS;
 using REB.Engine.Input;
+using REB.Engine.Loot.Components;
 using REB.Engine.Multiplayer.Components;
 using REB.Engine.Physics;
 using REB.Engine.Physics.Components;
@@ -105,6 +106,7 @@ public sealed class SessionManagerSystem : GameSystem
         World.AddComponent(entity, RoleComponent.None);
         World.AddComponent(entity, CarryComponent.Default);
         World.AddComponent(entity, AnimationComponent.Default);
+        World.AddComponent(entity, InventoryComponent.Default);
 
         // ── session ──────────────────────────────────────────────────────────
         World.AddComponent(entity, PlayerSessionComponent.ForSlot(

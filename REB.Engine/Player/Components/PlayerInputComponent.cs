@@ -43,6 +43,9 @@ public struct PlayerInputComponent : IComponent
     /// <summary>True while the sprint button is held.</summary>
     public bool RunHeld;
 
+    /// <summary>True on the frame the use-item button was first pressed (Q / RightShoulder).</summary>
+    public bool UseItemPressed;
+
     // -------------------------------------------------------------------------
     //  Factory presets
     // -------------------------------------------------------------------------

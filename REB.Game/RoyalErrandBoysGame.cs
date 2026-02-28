@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using REB.Engine.Audio.Systems;
 using REB.Engine.ECS;
 using REB.Engine.Input;
+using REB.Engine.Loot.Components;
+using REB.Engine.Loot.Systems;
 using REB.Engine.Multiplayer.Systems;
 using REB.Engine.Physics.Systems;
 using REB.Engine.Player.Princess.Components;
@@ -18,7 +20,7 @@ namespace REB.Game;
 
 /// <summary>
 /// Root <see cref="Microsoft.Xna.Framework.Game"/> subclass for Royal Errand Boys.
-/// Bootstraps the ECS <see cref="World"/>, registers all systems through Epic 3,
+/// Bootstraps the ECS <see cref="World"/>, registers all systems through Epic 4,
 /// and wires the FNA game loop into the ECS update/draw cycle.
 /// </summary>
 public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
@@ -74,6 +76,13 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world.RegisterSystem(new RoleAbilitySystem());
         _world.RegisterSystem(new CarrySystem());
 
+        // ── Epic 4: Loot & Inventory (Stories 4.1 – 4.4) ─────────────────────
+        _world.RegisterSystem(new LootSpawnSystem(seed: 1, floorDifficulty: 1));
+        _world.RegisterSystem(new PickupInteractionSystem());
+        _world.RegisterSystem(new InventorySystem());
+        _world.RegisterSystem(new LootValuationSystem());
+        _world.RegisterSystem(new UseItemSystem());
+
         // ── Phase 2: Performance overlay (Story 2.4) ─────────────────────────
         _world.RegisterSystem(new PerformanceOverlaySystem());
 
@@ -92,6 +101,7 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         SpawnDefaultCamera();
         SpawnDefaultLighting();
         SpawnPrincess();
+        SpawnTreasureLedger();
 
         // Auto-join the keyboard player so gameplay starts immediately.
         _sessionManager.JoinPlayer(0);
@@ -171,6 +181,13 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
             Scale       = Vector3.One,
             WorldMatrix = Matrix.Identity,
         });
+    }
+
+    private void SpawnTreasureLedger()
+    {
+        var ledger = _world.CreateEntity();
+        _world.AddTag(ledger, "TreasureLedger");
+        _world.AddComponent(ledger, TreasureLedgerComponent.Default);
     }
 
     private void SpawnPrincess()

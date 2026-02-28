@@ -67,6 +67,7 @@ public sealed class PlayerControllerSystem : GameSystem
             bool    interact  = ReadInteract(input, in pinput);
             bool    drop      = ReadDrop(input, in pinput);
             bool    camToggle = ReadCameraToggle(input, in pinput);
+            bool    useItem   = ReadUseItem(input, in pinput);
 
             // Cache per-frame flags for downstream systems.
             pinput.JumpPressed         = jump;
@@ -74,6 +75,7 @@ public sealed class PlayerControllerSystem : GameSystem
             pinput.InteractPressed     = interact;
             pinput.DropPressed         = drop;
             pinput.CameraTogglePressed = camToggle;
+            pinput.UseItemPressed      = useItem;
 
             // ── look ──────────────────────────────────────────────────────────
             ctrl.CameraYaw  -= lookDelta.X;
@@ -158,6 +160,11 @@ public sealed class PlayerControllerSystem : GameSystem
         p.UseKeyboard
             ? input.IsKeyPressed(Keys.F)
             : input.IsButtonPressed(p.GamepadSlot, Buttons.Y);
+
+    private static bool ReadUseItem(InputSystem input, in PlayerInputComponent p) =>
+        p.UseKeyboard
+            ? input.IsKeyPressed(Keys.Q)
+            : input.IsButtonPressed(p.GamepadSlot, Buttons.RightShoulder);
 
     // =========================================================================
     //  State machine
