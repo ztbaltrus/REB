@@ -7,7 +7,9 @@ using REB.Engine.Loot.Components;
 using REB.Engine.Loot.Systems;
 using REB.Engine.Multiplayer.Systems;
 using REB.Engine.Physics.Systems;
+using REB.Engine.Physics.Components;
 using REB.Engine.Player.Princess.Components;
+using REB.Engine.Player.Princess.Systems;
 using REB.Engine.Player.Systems;
 using REB.Engine.Rendering.Components;
 using REB.Engine.Rendering.Systems;
@@ -75,6 +77,12 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world.RegisterSystem(new AnimationSystem());
         _world.RegisterSystem(new RoleAbilitySystem());
         _world.RegisterSystem(new CarrySystem());
+
+        // ── Epic 5: Princess AI & Behavior (Stories 5.1 – 5.3) ───────────────
+        _world.RegisterSystem(new TraitBehaviorSystem());
+        _world.RegisterSystem(new MoodSystem());
+        _world.RegisterSystem(new MoodReactionSystem());
+        _world.RegisterSystem(new PrincessAISystem());
 
         // ── Epic 4: Loot & Inventory (Stories 4.1 – 4.4) ─────────────────────
         _world.RegisterSystem(new LootSpawnSystem(seed: 1, floorDifficulty: 1));
@@ -206,5 +214,22 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         });
 
         _world.AddComponent(princess, PrincessStateComponent.Default);
+
+        // ── Epic 5: personality, goodwill, and AI navigation ─────────────────
+        // Seed 1 gives a deterministic trait on the first run; swap for a random
+        // per-run seed once the save system is in place (Epic 8).
+        _world.AddComponent(princess, PrincessTraitComponent.Random(seed: 1));
+        _world.AddComponent(princess, PrincessGoodwillComponent.Default);
+        _world.AddComponent(princess, NavAgentComponent.Default);
+
+        // Physics body for AI-driven movement and drop impact.
+        _world.AddComponent(princess, new RigidBodyComponent
+        {
+            Velocity    = Vector3.Zero,
+            Mass        = 60f,
+            UseGravity  = true,
+            LinearDrag  = 5f,   // high drag so she stops quickly under AI control
+            IsKinematic = false,
+        });
     }
 }

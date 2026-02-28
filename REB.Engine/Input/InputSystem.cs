@@ -8,13 +8,26 @@ namespace REB.Engine.Input;
 /// Polls keyboard, mouse, and up to four gamepads every frame and exposes clean
 /// "pressed / held / released" helpers that other systems can query via
 /// <c>World.GetSystem&lt;InputSystem&gt;()</c>.
+/// <para>
+/// When constructed with a <see cref="GameWindow"/> the cursor is locked to the
+/// window centre each frame, so <see cref="MouseDelta"/> never saturates at the
+/// window edge. Pass <c>null</c> (or use the default constructor) to disable
+/// locking (e.g. in menus or headless tests).
+/// </para>
 /// </summary>
 public sealed class InputSystem : GameSystem
 {
+    private readonly GameWindow? _window;
+
     private KeyboardState _kb,     _prevKb;
     private MouseState    _mouse,  _prevMouse;
     private readonly GamePadState[] _pad     = new GamePadState[4];
     private readonly GamePadState[] _prevPad = new GamePadState[4];
+
+    public InputSystem(GameWindow? window = null)
+    {
+        _window = window;
+    }
 
     // -------------------------------------------------------------------------
     //  Update
@@ -30,6 +43,21 @@ public sealed class InputSystem : GameSystem
         _mouse = Mouse.GetState();
         for (int i = 0; i < 4; i++)
             _pad[i] = GamePad.GetState((PlayerIndex)i);
+
+        // ── Cursor lock ───────────────────────────────────────────────────────
+        // Warp the OS cursor back to the window centre after reading the delta.
+        // Then replace _mouse with a synthetic state at the centre so that the
+        // NEXT frame's _prevMouse baseline is the centre — not the window edge.
+        if (_window != null)
+        {
+            int cx = _window.ClientBounds.Width  / 2;
+            int cy = _window.ClientBounds.Height / 2;
+            Mouse.SetPosition(cx, cy);
+            _mouse = new MouseState(cx, cy,
+                _mouse.ScrollWheelValue,
+                _mouse.LeftButton, _mouse.MiddleButton, _mouse.RightButton,
+                _mouse.XButton1,   _mouse.XButton2);
+        }
     }
 
     // =========================================================================
