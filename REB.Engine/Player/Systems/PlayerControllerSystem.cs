@@ -227,8 +227,12 @@ public sealed class PlayerControllerSystem : GameSystem
         var set = new HashSet<uint>();
         foreach (var ev in events)
         {
-            // An upward-facing normal means one body is resting on top of the other.
-            if (ev.Normal.Y > 0.7f)
+            // Normal points from EntityA toward EntityB (delta = B.pos - A.pos).
+            // A large |Y| component means the collision is vertical regardless of sign,
+            // so both entities participate in a floor/ceiling contact.
+            // Only entities with CharacterControllerComponent query IsGrounded, so
+            // adding both indices is safe even when one is a static floor.
+            if (MathF.Abs(ev.Normal.Y) > 0.7f)
             {
                 set.Add(ev.EntityA.Index);
                 set.Add(ev.EntityB.Index);

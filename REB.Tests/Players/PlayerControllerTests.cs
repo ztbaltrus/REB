@@ -110,7 +110,8 @@ public sealed class PlayerControllerTests
     {
         var (world, _) = BuildWorld();
 
-        // Static box floor: top face at Y = 0 (centre Y = -0.5, half-height = 0.5).
+        // Static box floor: half-extents (5, 0.5, 5), centre at Y = -0.5.
+        // Top face sits at Y = 0.
         var floor = world.CreateEntity();
         world.AddComponent(floor, new TransformComponent
         {
@@ -119,31 +120,25 @@ public sealed class PlayerControllerTests
             Scale       = Vector3.One,
             WorldMatrix = Matrix.Identity,
         });
-        world.AddComponent(floor, new ColliderComponent
-        {
-            Shape       = REB.Engine.Physics.ColliderShape.Box,
-            HalfExtents = new Vector3(5f, 0.5f, 5f),
-            Layer       = REB.Engine.Physics.CollisionLayer.Terrain,
-            LayerMask   = REB.Engine.Physics.CollisionLayer.All,
-            IsStatic    = true,
-        });
+        world.AddComponent(floor, ColliderComponent.Box(
+            halfExtents: new Vector3(5f, 0.5f, 5f),
+            layer:       REB.Engine.Physics.CollisionLayer.Terrain,
+            mask:        REB.Engine.Physics.CollisionLayer.All,
+            isStatic:    true));
 
-        // Player with gravity, positioned slightly overlapping the floor top face.
-        var player = AddPlayer(world, new Vector3(0f, 0.3f, 0f));
-        ref var rb = ref world.GetComponent<RigidBodyComponent>(player);
-        rb.UseGravity = true;
-        // Give player a capsule collider so physics can resolve against the floor.
-        world.AddComponent(player, ColliderComponent.Capsule(
-            radius:     0.4f,
-            halfHeight: 0.85f,
-            layer:      REB.Engine.Physics.CollisionLayer.Player,
-            mask:       REB.Engine.Physics.CollisionLayer.Terrain | REB.Engine.Physics.CollisionLayer.Default));
+        // Player box collider: half-extents (0.4, 0.4, 0.4), centre at Y = 0.2.
+        // Bottom face sits at Y = -0.2 → overlaps floor top face (Y = 0) by 0.2 units.
+        var player = AddPlayer(world, new Vector3(0f, 0.2f, 0f));
+        world.AddComponent(player, ColliderComponent.Box(
+            halfExtents: new Vector3(0.4f, 0.4f, 0.4f),
+            layer:       REB.Engine.Physics.CollisionLayer.Player,
+            mask:        REB.Engine.Physics.CollisionLayer.Terrain | REB.Engine.Physics.CollisionLayer.Default));
 
         world.Update(0.016f);
 
         var ctrl = world.GetComponent<CharacterControllerComponent>(player);
         Assert.True(ctrl.IsGrounded,
-            "Expected IsGrounded=true when a collision with an upward normal is generated.");
+            "Expected IsGrounded=true when a box-box collision with an upward normal is generated.");
         world.Dispose();
     }
 

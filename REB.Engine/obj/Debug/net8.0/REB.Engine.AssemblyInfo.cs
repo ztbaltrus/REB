@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("REB.Engine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cfb209c9035471646c37873efec9b8d779d9fa07")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3427134b5047fba8ac938ec8a3cbcca4e6dbb5f8")]
 [assembly: System.Reflection.AssemblyProductAttribute("REB.Engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("REB.Engine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
