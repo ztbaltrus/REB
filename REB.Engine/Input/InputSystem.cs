@@ -21,6 +21,7 @@ public sealed class InputSystem : GameSystem
 
     private KeyboardState _kb,     _prevKb;
     private MouseState    _mouse,  _prevMouse;
+    private Vector2       _mouseDelta;
     private readonly GamePadState[] _pad     = new GamePadState[4];
     private readonly GamePadState[] _prevPad = new GamePadState[4];
 
@@ -45,9 +46,9 @@ public sealed class InputSystem : GameSystem
             _pad[i] = GamePad.GetState((PlayerIndex)i);
 
         // ── Cursor lock ───────────────────────────────────────────────────────
-        // Warp the OS cursor back to the window centre after reading the delta.
-        // Then replace _mouse with a synthetic state at the centre so that the
-        // NEXT frame's _prevMouse baseline is the centre — not the window edge.
+        // Capture delta from the real mouse position BEFORE warping, then reset
+        // _mouse to the centre so next frame's _prevMouse baseline is consistent.
+        _mouseDelta = new Vector2(_mouse.X - _prevMouse.X, _mouse.Y - _prevMouse.Y);
         if (_window != null)
         {
             int cx = _window.ClientBounds.Width  / 2;
@@ -78,7 +79,7 @@ public sealed class InputSystem : GameSystem
 
     public Point     MousePosition  => new(_mouse.X, _mouse.Y);
     public int       ScrollDelta    => _mouse.ScrollWheelValue - _prevMouse.ScrollWheelValue;
-    public Vector2   MouseDelta     => new(_mouse.X - _prevMouse.X, _mouse.Y - _prevMouse.Y);
+    public Vector2   MouseDelta     => _mouseDelta;
 
     public bool IsLeftButtonDown()     => _mouse.LeftButton   == ButtonState.Pressed;
     public bool IsLeftButtonPressed()  => _mouse.LeftButton   == ButtonState.Pressed

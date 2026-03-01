@@ -1,13 +1,22 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using REB.Engine.Audio.Systems;
+using REB.Engine.Boss.Systems;
+using REB.Engine.Combat.Components;
+using REB.Engine.Combat.Systems;
+using REB.Engine.KingsCourt.Components;
+using REB.Engine.KingsCourt.Systems;
+using REB.Engine.Tavern.Components;
+using REB.Engine.Tavern.Systems;
 using REB.Engine.ECS;
+using REB.Engine.Enemy.Systems;
+using REB.Engine.Hazards.Systems;
 using REB.Engine.Input;
 using REB.Engine.Loot.Components;
 using REB.Engine.Loot.Systems;
 using REB.Engine.Multiplayer.Systems;
-using REB.Engine.Physics.Systems;
 using REB.Engine.Physics.Components;
+using REB.Engine.Physics.Systems;
 using REB.Engine.Player.Princess.Components;
 using REB.Engine.Player.Princess.Systems;
 using REB.Engine.Player.Systems;
@@ -15,6 +24,8 @@ using REB.Engine.Rendering.Components;
 using REB.Engine.Rendering.Systems;
 using REB.Engine.Settings;
 using REB.Engine.Spatial.Systems;
+using REB.Engine.UI.Components;
+using REB.Engine.UI.Systems;
 using REB.Engine.World;
 using REB.Engine.World.Systems;
 
@@ -22,7 +33,7 @@ namespace REB.Game;
 
 /// <summary>
 /// Root <see cref="Microsoft.Xna.Framework.Game"/> subclass for Royal Errand Boys.
-/// Bootstraps the ECS <see cref="World"/>, registers all systems through Epic 4,
+/// Bootstraps the ECS <see cref="World"/>, registers all systems through Epic 9,
 /// and wires the FNA game loop into the ECS update/draw cycle.
 /// </summary>
 public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
@@ -42,7 +53,7 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         };
 
         Content.RootDirectory = "Content";
-        IsMouseVisible         = true;
+        IsMouseVisible         = false;
         Window.Title           = "Royal Errand Boys";
     }
 
@@ -55,7 +66,7 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world = new World();
 
         // ── Phase 1: Core Engine Services (Story 1.4) ────────────────────────
-        _world.RegisterSystem(new InputSystem());
+        _world.RegisterSystem(new InputSystem(Window));
         _world.RegisterSystem(new AudioSystem());
         _world.RegisterSystem(new SettingsSystem(_graphics));
 
@@ -84,6 +95,40 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world.RegisterSystem(new MoodReactionSystem());
         _world.RegisterSystem(new PrincessAISystem());
 
+        // ── Epic 6: Enemies, Hazards & Combat (Stories 6.1 – 6.4) ────────────
+        _world.RegisterSystem(new AggroSystem());
+        _world.RegisterSystem(new EnemyAISystem());
+        _world.RegisterSystem(new CombatSystem());
+        _world.RegisterSystem(new HitReactionSystem());
+        _world.RegisterSystem(new DeathSystem());
+        _world.RegisterSystem(new TrapTriggerSystem());
+        _world.RegisterSystem(new BossSystem());
+
+        // ── Epic 7: King's Court & Reward System (Stories 7.1 – 7.4) ─────────
+        _world.RegisterSystem(new KingsCourtSceneSystem());
+        _world.RegisterSystem(new NegotiationMinigameSystem());
+        _world.RegisterSystem(new PayoutCalculationSystem());
+        _world.RegisterSystem(new KingRelationshipSystem());
+
+        // ── Epic 8: Tavern & Upgrade Systems (Stories 8.1 – 8.4) ─────────────
+        _world.RegisterSystem(new GoldCurrencySystem());
+        _world.RegisterSystem(new TavernSceneSystem());
+        _world.RegisterSystem(new UpgradeTreeSystem());
+        _world.RegisterSystem(new GearUpgradeSystem());
+        _world.RegisterSystem(new TavernkeeperSystem());
+        _world.RegisterSystem(new SerializationSystem());
+
+        // ── Epic 9: UI, HUD & Game Feel (Stories 9.1 – 9.4) ─────────────────
+        _world.RegisterSystem(new HUDSystem());
+        _world.RegisterSystem(new MenuSystem());
+        _world.RegisterSystem(new RoleSelectionSystem());
+        _world.RegisterSystem(new RunSummaryUISystem());
+        _world.RegisterSystem(new DynamicMusicSystem());
+        _world.RegisterSystem(new SpatialAudioSystem());
+        _world.RegisterSystem(new ParticleSystem());
+        _world.RegisterSystem(new ScreenShakeSystem());
+        _world.RegisterSystem(new HitFeedbackSystem());
+
         // ── Epic 4: Loot & Inventory (Stories 4.1 – 4.4) ─────────────────────
         _world.RegisterSystem(new LootSpawnSystem(seed: 1, floorDifficulty: 1));
         _world.RegisterSystem(new PickupInteractionSystem());
@@ -110,6 +155,17 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         SpawnDefaultLighting();
         SpawnPrincess();
         SpawnTreasureLedger();
+        SpawnKing();
+        SpawnRunSummary();
+        SpawnGoldLedger();
+        SpawnTavern();
+        SpawnTavernkeeper();
+        SpawnHUDData();
+        SpawnMenuManager();
+        SpawnRunSummaryUI();
+        SpawnDynamicMusic();
+        SpawnAudioMixer();
+        SpawnScreenShake();
 
         // Auto-join the keyboard player so gameplay starts immediately.
         _sessionManager.JoinPlayer(0);
@@ -231,5 +287,94 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
             LinearDrag  = 5f,   // high drag so she stops quickly under AI control
             IsKinematic = false,
         });
+
+        // ── Epic 6: health and hit-reaction so hazards/enemies can affect her ──
+        _world.AddComponent(princess, HealthComponent.For(100f));
+        _world.AddComponent(princess, HitReactionComponent.Default);
+    }
+
+    private void SpawnKing()
+    {
+        var king = _world.CreateEntity();
+        _world.AddTag(king, "King");
+        _world.AddComponent(king, KingStateComponent.Default);
+        _world.AddComponent(king, DialogueChoiceComponent.Default);
+        _world.AddComponent(king, KingDispositionComponent.Default);
+        _world.AddComponent(king, KingRelationshipComponent.Default);
+    }
+
+    private void SpawnRunSummary()
+    {
+        var summary = _world.CreateEntity();
+        _world.AddTag(summary, "RunSummary");
+        // IsComplete starts false; LootValuationSystem / run-end logic sets it
+        // true at end-of-run to trigger the King's Court scene (Epic 7).
+        _world.AddComponent(summary, new RunSummaryComponent());
+    }
+
+    private void SpawnGoldLedger()
+    {
+        var ledger = _world.CreateEntity();
+        _world.AddTag(ledger, "GoldLedger");
+        _world.AddComponent(ledger, GoldCurrencyComponent.Default);
+        _world.AddComponent(ledger, UpgradeTreeComponent.Default);
+    }
+
+    private void SpawnTavern()
+    {
+        var tavern = _world.CreateEntity();
+        _world.AddTag(tavern, "Tavern");
+        _world.AddComponent(tavern, TavernStateComponent.Default);
+    }
+
+    private void SpawnTavernkeeper()
+    {
+        var tk = _world.CreateEntity();
+        _world.AddTag(tk, "Tavernkeeper");
+        _world.AddComponent(tk, TavernkeeperNPCComponent.Default);
+    }
+
+    // ── Epic 9: UI, HUD & Game Feel ──────────────────────────────────────────
+
+    private void SpawnHUDData()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "HUDData");
+        _world.AddComponent(e, HUDDataComponent.Default);
+    }
+
+    private void SpawnMenuManager()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "MenuManager");
+        _world.AddComponent(e, MenuManagerComponent.Default);
+    }
+
+    private void SpawnRunSummaryUI()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "RunSummaryUI");
+        _world.AddComponent(e, RunSummaryUIComponent.Default);
+    }
+
+    private void SpawnDynamicMusic()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "DynamicMusic");
+        _world.AddComponent(e, DynamicMusicComponent.Default);
+    }
+
+    private void SpawnAudioMixer()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "AudioMixer");
+        _world.AddComponent(e, AudioMixerComponent.Default);
+    }
+
+    private void SpawnScreenShake()
+    {
+        var e = _world.CreateEntity();
+        _world.AddTag(e, "ScreenShake");
+        _world.AddComponent(e, ScreenShakeComponent.Default);
     }
 }

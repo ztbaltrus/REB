@@ -130,7 +130,7 @@ public sealed class PlayerControllerSystem : GameSystem
         if (p.UseKeyboard)
         {
             var delta = input.MouseDelta;
-            return delta * (p.LookSensitivity * 0.002f);
+            return new Vector2(delta.X, -delta.Y) * (p.LookSensitivity * 0.002f);
         }
         var stick = input.RightStick(p.GamepadSlot);
         return new Vector2(stick.X, -stick.Y) * (StickScale * dt);

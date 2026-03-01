@@ -12,3 +12,15 @@ src/REB.Engine/bin/Debug/
 tests/REB.Tests/bin/Debug/
 
 tests/REB.Tests/obj/Debug/
+
+REB.Game/bin/
+
+REB.Game/obj/Debug/
+
+REB.Engine/bin/
+
+REB.Engine/obj/Debug/
+
+REB.Tests/bin/
+
+REB.Tests/obj/Debug/
