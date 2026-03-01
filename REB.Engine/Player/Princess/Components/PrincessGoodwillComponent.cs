@@ -26,6 +26,13 @@ public struct PrincessGoodwillComponent : IComponent
     /// <summary>Seconds until the princess is allowed to emit another bark line.</summary>
     public float DialogueCooldown;
 
+    /// <summary>
+    /// Multiplier applied to the passive goodwill decay rate each frame.
+    /// 1.0 = normal decay; 0.5 = halved (Negotiator ability).
+    /// Reset to 1.0 when the Negotiator ability timer expires.
+    /// </summary>
+    public float GoodwillDecayMultiplier;
+
     // -------------------------------------------------------------------------
     //  Thresholds (const so tests can reference them without boxing)
     // -------------------------------------------------------------------------
@@ -38,9 +45,10 @@ public struct PrincessGoodwillComponent : IComponent
 
     public static PrincessGoodwillComponent Default => new()
     {
-        Goodwill             = 50f,
-        ReactionMode         = PrincessReactionMode.Neutral,
-        CarrierSpeedModifier = 1f,
-        DialogueCooldown     = 0f,
+        Goodwill                = 50f,
+        ReactionMode            = PrincessReactionMode.Neutral,
+        CarrierSpeedModifier    = 1f,
+        DialogueCooldown        = 0f,
+        GoodwillDecayMultiplier = 1f,
     };
 }

@@ -20,6 +20,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <!-- Compiled .xnb assets (build from Content/Content.mgcb using dotnet-mgcb or MGCB Editor). -->
+    <Content Include="Content\**\*.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Content\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <!-- Raw audio: FNA loads .ogg/.wav directly without content-pipeline compilation. -->
+    <Content Include="Content\Audio\**\*.ogg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Content\Audio\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="Content\Audio\**\*.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Content\Audio\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\REB.Engine\REB.Engine.csproj" />
     <ProjectReference Include="..\FNA\FNA.Core.csproj" />
     <ProjectReference Include="..\FNA\FNA.NetFramework.csproj" />

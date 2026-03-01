@@ -20,6 +20,13 @@ public struct CarryComponent : IComponent
     /// <summary>Y-axis offset above the carrier's position where the carried entity is positioned.</summary>
     public float CarryOffsetY;
 
+    /// <summary>
+    /// True while the Carrier role ability's sprint burst is active.
+    /// When true, MoodSystem suppresses the carry-struggle mood penalty so
+    /// the princess's goodwill is not drained during the burst window.
+    /// </summary>
+    public bool SprintBurstActive;
+
     public static CarryComponent Default => new()
     {
         IsCarrying    = false,

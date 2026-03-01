@@ -1,0 +1,56 @@
+
+#----------------------------- Global Properties ----------------------------#
+
+/outputDir:bin/$(Platform)
+/intermediateDir:obj/$(Platform)
+/platform:DesktopGL
+/config:
+/profile:Reach
+/compress:False
+
+#-------------------------------- References --------------------------------#
+
+#---------------------------------- Content ---------------------------------#
+
+#begin Fonts/HudFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/HudFont.spritefont
+
+#begin Fonts/DialogueFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/DialogueFont.spritefont
+
+#begin Fonts/TitleFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/TitleFont.spritefont
+
+# --- Audio (add lines here as .ogg/.wav files arrive) ---
+# Example:
+# #begin Audio/Music/main_menu.ogg
+# /importer:OggImporter
+# /processor:SongProcessor
+# /build:Audio/Music/main_menu.ogg
+
+# --- Models (add lines here as .fbx files arrive) ---
+# Example:
+# #begin Models/floor_tile.fbx
+# /importer:FbxImporter
+# /processor:ModelProcessor
+# /build:Models/floor_tile.fbx
+
+# --- Textures (add lines here as .png files arrive) ---
+# Example:
+# #begin Textures/floor_tile_diffuse.png
+# /importer:TextureImporter
+# /processor:TextureProcessor
+# /processorParam:ColorKeyEnabled=False
+# /build:Textures/floor_tile_diffuse.png

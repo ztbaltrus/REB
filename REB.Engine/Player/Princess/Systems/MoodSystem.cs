@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using REB.Engine.ECS;
+using REB.Engine.Player.Components;
 using REB.Engine.Player.Princess.Components;
 
 namespace REB.Engine.Player.Princess.Systems;
@@ -10,9 +11,9 @@ namespace REB.Engine.Player.Princess.Systems;
 /// <para>
 /// Goodwill rules (points per second unless noted):
 /// <list type="bullet">
-///   <item>Passive decay    — always −0.2 /s</item>
+///   <item>Passive decay    — always −0.2 /s (scaled by <see cref="PrincessGoodwillComponent.GoodwillDecayMultiplier"/>)</item>
 ///   <item>Calm carry gain  — +1.0 /s while carried and MoodLevel == Calm</item>
-///   <item>Struggle drain   — −3.0 /s during a struggle burst</item>
+///   <item>Struggle drain   — −3.0 /s during a struggle burst (suppressed by Carrier sprint burst)</item>
 ///   <item>Drop penalty     — instant −5 when princess transitions from carried to not-carried</item>
 /// </list>
 /// </para>
@@ -42,16 +43,23 @@ public sealed class MoodSystem : GameSystem
         if (_wasCarriedLastFrame && !ps.IsBeingCarried)
             gw.Goodwill -= DropPenalty;
 
-        // Passive decay — always running.
-        gw.Goodwill -= PassiveDecayRate * deltaTime;
+        // Passive decay — scaled by the Negotiator ability's decay multiplier (default 1.0).
+        float decayMultiplier = gw.GoodwillDecayMultiplier > 0f ? gw.GoodwillDecayMultiplier : 1f;
+        gw.Goodwill -= PassiveDecayRate * decayMultiplier * deltaTime;
 
         // Carry-based adjustments.
         if (ps.IsBeingCarried)
         {
             if (ps.IsStruggling)
-                gw.Goodwill -= StruggleDrainRate * deltaTime;
+            {
+                // Suppress struggle drain while the Carrier's sprint burst is active.
+                if (!IsCarrierBursting(princess))
+                    gw.Goodwill -= StruggleDrainRate * deltaTime;
+            }
             else if (ps.MoodLevel == PrincessMoodLevel.Calm)
+            {
                 gw.Goodwill += CalmCarryGain * deltaTime;
+            }
         }
 
         gw.Goodwill = MathHelper.Clamp(gw.Goodwill, 0f, 100f);
@@ -64,8 +72,20 @@ public sealed class MoodSystem : GameSystem
     }
 
     // =========================================================================
-    //  Helper
+    //  Helpers
     // =========================================================================
+
+    /// <summary>Returns true if the entity currently carrying the princess has SprintBurstActive.</summary>
+    private bool IsCarrierBursting(Entity princess)
+    {
+        foreach (var player in World.Query<CarryComponent>())
+        {
+            ref var carry = ref World.GetComponent<CarryComponent>(player);
+            if (carry.IsCarrying && carry.CarriedEntity == princess)
+                return carry.SprintBurstActive;
+        }
+        return false;
+    }
 
     private Entity FindPrincess()
     {

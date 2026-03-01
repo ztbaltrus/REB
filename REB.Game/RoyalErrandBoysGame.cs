@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using REB.Engine.Audio.Systems;
+using REB.Engine.UI;
 using REB.Engine.Boss.Systems;
 using REB.Engine.Combat.Components;
 using REB.Engine.Combat.Systems;
@@ -43,6 +45,9 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
     private readonly GraphicsDeviceManager _graphics;
     private World                  _world          = null!;
     private SessionManagerSystem   _sessionManager = null!;
+    private UIRenderSystem         _uiRender       = null!;
+    private MusicPlaybackSystem    _musicPlayback  = null!;
+    private DialogueSubtitleSystem _dialogueSubs   = null!;
 
     public RoyalErrandBoysGame()
     {
@@ -137,6 +142,14 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world.RegisterSystem(new ScreenShakeSystem());
         _world.RegisterSystem(new HitFeedbackSystem());
 
+        // ── Rendering & Playback (UIRenderSystem, Music, Subtitles) ──────────
+        _uiRender      = new UIRenderSystem(GraphicsDevice);
+        _musicPlayback = new MusicPlaybackSystem();
+        _dialogueSubs  = new DialogueSubtitleSystem();
+        _world.RegisterSystem(_uiRender);
+        _world.RegisterSystem(_musicPlayback);
+        _world.RegisterSystem(_dialogueSubs);
+
         // ── Epic 4: Loot & Inventory (Stories 4.1 – 4.4) ─────────────────────
         _world.RegisterSystem(new LootSpawnSystem(seed: 1, floorDifficulty: 1));
         _world.RegisterSystem(new PickupInteractionSystem());
@@ -183,7 +196,36 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
 
     protected override void LoadContent()
     {
-        // Per-scene asset loading deferred to later epics.
+        // Load fonts — game runs without crash if .xnb files aren't compiled yet.
+        TryLoad(() =>
+        {
+            var hudFont  = Content.Load<SpriteFont>("Fonts/HudFont");
+            var dlgFont  = Content.Load<SpriteFont>("Fonts/DialogueFont");
+            var ttlFont  = Content.Load<SpriteFont>("Fonts/TitleFont");
+            _uiRender.LoadFonts(hudFont, dlgFont, ttlFont);
+            _dialogueSubs.LoadFont(dlgFont, GraphicsDevice);
+        });
+
+        // Load music — silently skipped if audio files aren't present.
+        TryLoad(() =>
+        {
+            var songs = new Dictionary<MusicTrack, Song>
+            {
+                [MusicTrack.MainMenu]     = Content.Load<Song>("Audio/Music/main_menu"),
+                [MusicTrack.Exploration]  = Content.Load<Song>("Audio/Music/exploration"),
+                [MusicTrack.Combat]       = Content.Load<Song>("Audio/Music/combat"),
+                [MusicTrack.BossEncounter]= Content.Load<Song>("Audio/Music/boss_encounter"),
+                [MusicTrack.KingsCourt]   = Content.Load<Song>("Audio/Music/kings_court"),
+                [MusicTrack.Tavern]       = Content.Load<Song>("Audio/Music/tavern"),
+            };
+            _musicPlayback.LoadSongs(songs);
+        });
+    }
+
+    private static void TryLoad(Action load)
+    {
+        try { load(); }
+        catch { /* asset not yet compiled — skip gracefully */ }
     }
 
     // -------------------------------------------------------------------------
