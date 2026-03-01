@@ -20,10 +20,10 @@ namespace REB.Engine.Loot.Systems;
 /// </summary>
 public sealed class LootSpawnSystem : GameSystem
 {
-    private readonly int _globalSeed;
-    private readonly int _floorDifficulty;
-    private          bool _initialSpawnDone;
-    private          int  _spawnSequence;
+    private int  _globalSeed;
+    private int  _floorDifficulty;
+    private bool _initialSpawnDone;
+    private int  _spawnSequence;
 
     public LootSpawnSystem(int seed = 42, int floorDifficulty = 1)
     {
@@ -45,6 +45,29 @@ public sealed class LootSpawnSystem : GameSystem
     // =========================================================================
     //  Public API
     // =========================================================================
+
+    /// <summary>
+    /// Destroys all item entities currently in the world, updates the loot seed
+    /// and floor difficulty, and resets the initial-spawn flag so the next
+    /// <see cref="Update"/> call re-scatters items on the new floor.
+    /// Called by <see cref="REB.Engine.RunManagement.Systems.RunManagerSystem"/>
+    /// at the start of each new run.
+    /// </summary>
+    public void Reseed(int newSeed, int newFloorDifficulty)
+    {
+        // Remove all loose items from the world.
+        var toDestroy = new List<Entity>();
+        foreach (var e in World.GetEntitiesWithTag("Item")) toDestroy.Add(e);
+        foreach (var e in toDestroy)
+        {
+            if (World.IsAlive(e)) World.DestroyEntity(e);
+        }
+
+        _globalSeed      = newSeed;
+        _floorDifficulty = newFloorDifficulty;
+        _initialSpawnDone = false;
+        _spawnSequence    = 0;
+    }
 
     /// <summary>
     /// Spawns <paramref name="count"/> items near <paramref name="origin"/> using

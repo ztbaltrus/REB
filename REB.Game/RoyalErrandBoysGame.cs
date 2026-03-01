@@ -6,6 +6,8 @@ using REB.Engine.Combat.Components;
 using REB.Engine.Combat.Systems;
 using REB.Engine.KingsCourt.Components;
 using REB.Engine.KingsCourt.Systems;
+using REB.Engine.QA.Systems;
+using REB.Engine.RunManagement.Systems;
 using REB.Engine.Tavern.Components;
 using REB.Engine.Tavern.Systems;
 using REB.Engine.ECS;
@@ -117,6 +119,12 @@ public sealed class RoyalErrandBoysGame : Microsoft.Xna.Framework.Game
         _world.RegisterSystem(new GearUpgradeSystem());
         _world.RegisterSystem(new TavernkeeperSystem());
         _world.RegisterSystem(new SerializationSystem());
+
+        // ── Epic 10: QA, Polish & Ship Readiness (Stories 10.1 – 10.4) ───────
+        // RunManagerSystem: drives procedural per-run generation (masterSeed=0 → random).
+        _world.RegisterSystem(new RunManagerSystem(masterSeed: 0));
+        _world.RegisterSystem(new InvariantCheckerSystem());
+        _world.RegisterSystem(new PerformanceProfilerSystem());
 
         // ── Epic 9: UI, HUD & Game Feel (Stories 9.1 – 9.4) ─────────────────
         _world.RegisterSystem(new HUDSystem());

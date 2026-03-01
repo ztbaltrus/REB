@@ -35,8 +35,8 @@ public sealed class ProceduralFloorGeneratorSystem : GameSystem
     //  Configuration
     // -------------------------------------------------------------------------
 
-    private readonly int        _seed;
-    private readonly FloorTheme _theme;
+    private int        _seed;
+    private FloorTheme _theme;
     private readonly int        _gridWidth;
     private readonly int        _gridHeight;
 
@@ -99,6 +99,35 @@ public sealed class ProceduralFloorGeneratorSystem : GameSystem
     {
         _rng  = new Random(_seed);
         _grid = new TileType[_gridWidth, _gridHeight];
+        GenerateFloor();
+    }
+
+    /// <summary>
+    /// Destroys all existing room and wall entities, then regenerates the floor
+    /// using <paramref name="newSeed"/> and <paramref name="newTheme"/>.
+    /// Safe to call at run-start; used by
+    /// <see cref="REB.Engine.RunManagement.Systems.RunManagerSystem"/>.
+    /// </summary>
+    public void Regenerate(int newSeed, FloorTheme newTheme)
+    {
+        // Destroy all previously-generated room and wall entities.
+        var toDestroy = new List<Entity>();
+        foreach (var e in World.GetEntitiesWithTag("Room")) toDestroy.Add(e);
+        foreach (var e in World.GetEntitiesWithTag("Wall")) toDestroy.Add(e);
+        foreach (var e in World.GetEntitiesWithTag("Entrance")) { /* tag-only; entity already queued */ }
+        foreach (var e in toDestroy)
+        {
+            if (World.IsAlive(e)) World.DestroyEntity(e);
+        }
+
+        _roomEntities.Clear();
+        _leaves.Clear();
+
+        // Apply new seed and theme, then regenerate.
+        _seed  = newSeed;
+        _theme = newTheme;
+        _rng   = new Random(_seed);
+        _grid  = new TileType[_gridWidth, _gridHeight];
         GenerateFloor();
     }
 
